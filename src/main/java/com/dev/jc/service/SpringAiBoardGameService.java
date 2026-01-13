@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import com.dev.jc.dto.Answer;
 import com.dev.jc.dto.Question;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 
 @Service
 @Slf4j
@@ -32,7 +34,7 @@ public class SpringAiBoardGameService implements BoardGameService {
 		
 		String gameRules = gameRulesService.getRulesFor(question.gameTitle());
 
-		String answerText = chatClient.prompt()
+		Answer answer = chatClient.prompt()
 				.system(systemSpec -> systemSpec
 						.text(promptTemplate)
 						.param("gameTitle", question.gameTitle())
@@ -40,13 +42,26 @@ public class SpringAiBoardGameService implements BoardGameService {
 						.param("rules", gameRules))
 				.user(question.question())
 				.call()
-				.content();
+				.entity(Answer.class);
 
 		long endTime = System.currentTimeMillis();
 		log.info("Response time: {} ms", (endTime - startTime));
-		log.info("Generated answer: {}", answerText);
-		return new Answer(question.gameTitle(), answerText);
+		log.info("Generated answer: {}", answer.answer());
+		return answer;
+	}
 
+	public Flux<String> askQuestionStreaming(@Valid Question question) {
+		String gameRules = gameRulesService.getRulesFor(question.gameTitle());
+
+		return chatClient.prompt()
+				.system(systemSpec -> systemSpec
+						.text(promptTemplate)
+						.param("gameTitle", question.gameTitle())
+			            .param("question", question.question())
+						.param("rules", gameRules))
+				.user(question.question())
+				.stream()
+				.content();
 	}
 
 }
