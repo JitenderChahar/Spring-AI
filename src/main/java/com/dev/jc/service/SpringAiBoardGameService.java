@@ -1,6 +1,8 @@
 package com.dev.jc.service;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import com.dev.jc.dto.Answer;
@@ -18,10 +20,9 @@ public class SpringAiBoardGameService implements BoardGameService {
 		this.chatClient = chatClientBuilder.build();
 	}
 	
-	 private static final String questionPromptTemplate = """
-		      Answer this question about {game}: {question}
-		      """;
-
+	@Value("classpath:/promptTemplates/questionPromptTemplate.st")
+	Resource questionPromptTemplate;
+	
 	@Override
 	public Answer askQuestion(Question question) {
 		log.info("Received question: {}", question.question());
@@ -30,7 +31,7 @@ public class SpringAiBoardGameService implements BoardGameService {
 		String answerText = chatClient.prompt()
 				.user(userSpec -> userSpec
 			            .text(questionPromptTemplate)
-			            .param("game", question.gameTitle())
+			            .param("gameTitle", question.gameTitle())
 			            .param("question", question.question()))
 				.call()
 				.content();
