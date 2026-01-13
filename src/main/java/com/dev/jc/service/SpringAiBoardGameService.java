@@ -15,9 +15,11 @@ import lombok.extern.slf4j.Slf4j;
 public class SpringAiBoardGameService implements BoardGameService {
 
 	private final ChatClient chatClient;
+	private final GameRulesService gameRulesService;
 	
-	public SpringAiBoardGameService(ChatClient.Builder chatClientBuilder) {
+	public SpringAiBoardGameService(ChatClient.Builder chatClientBuilder, GameRulesService gameRulesService) {
 		this.chatClient = chatClientBuilder.build();
+		this.gameRulesService = gameRulesService;
 	}
 	
 	@Value("classpath:/promptTemplates/questionPromptTemplate.st")
@@ -27,12 +29,15 @@ public class SpringAiBoardGameService implements BoardGameService {
 	public Answer askQuestion(Question question) {
 		log.info("Received question: {}", question.question());
 		long startTime = System.currentTimeMillis();
+		
+		String gameRules = gameRulesService.getRulesFor(question.gameTitle());
 
 		String answerText = chatClient.prompt()
 				.user(userSpec -> userSpec
 			            .text(questionPromptTemplate)
 			            .param("gameTitle", question.gameTitle())
-			            .param("question", question.question()))
+			            .param("question", question.question())
+						.param("rules", gameRules))
 				.call()
 				.content();
 

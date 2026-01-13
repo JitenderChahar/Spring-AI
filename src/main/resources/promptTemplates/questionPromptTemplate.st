@@ -7,3 +7,6 @@ Answer in complete sentences.
 The game is {gameTitle}.
 
 The question is: {question}.
+
+RULES:
+{rules}
