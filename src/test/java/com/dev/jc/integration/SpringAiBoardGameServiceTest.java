@@ -36,7 +36,7 @@ public class SpringAiBoardGameServiceTest {
 	@Test
 	public void testAskQuestion() {
 		String userText = "Why is the sky blue?";
-	    Question question = new Question(userText);
+	    Question question = new Question(userText, "General Knowledge");
 	    Answer answer = springAiBoardGameService.askQuestion(question); 
 
 	    EvaluationRequest evaluationRequest = new EvaluationRequest(
@@ -59,7 +59,7 @@ public class SpringAiBoardGameServiceTest {
 	@Test
 	  public void evaluateFactualAccuracy() {
 	    var userText = "Why is the sky blue?";
-	    var question = new Question(userText);
+	    var question = new Question(userText, "General Knowledge");
 	    var answer = springAiBoardGameService.askQuestion(question);
 
 	    var evaluationRequest =

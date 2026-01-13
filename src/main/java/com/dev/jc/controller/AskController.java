@@ -8,6 +8,8 @@ import com.dev.jc.dto.Answer;
 import com.dev.jc.dto.Question;
 import com.dev.jc.service.SpringAiBoardGameService;
 
+import jakarta.validation.Valid;
+
 @RestController
 public class AskController {
 	
@@ -17,8 +19,8 @@ public class AskController {
 		this.askService = askService;
 	}
 	
-	@PostMapping("/ask")
-	public Answer askQuestion(@RequestBody Question question) {
+	@PostMapping(value = "/ask", produces = "application/json")
+	public Answer askQuestion(@RequestBody @Valid Question question) {
 		return askService.askQuestion(question);
 	}
 
