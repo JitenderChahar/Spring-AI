@@ -1,6 +1,10 @@
 package com.dev.jc.service;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ResponseEntity;
+import org.springframework.ai.chat.metadata.ChatResponseMetadata;
+import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -34,7 +38,7 @@ public class SpringAiBoardGameService implements BoardGameService {
 		
 		String gameRules = gameRulesService.getRulesFor(question.gameTitle());
 
-		Answer answer = chatClient.prompt()
+		 ResponseEntity<ChatResponse, Answer> responseEntity = chatClient.prompt()
 				.system(systemSpec -> systemSpec
 						.text(promptTemplate)
 						.param("gameTitle", question.gameTitle())
@@ -42,7 +46,12 @@ public class SpringAiBoardGameService implements BoardGameService {
 						.param("rules", gameRules))
 				.user(question.question())
 				.call()
-				.entity(Answer.class);
+				.responseEntity(Answer.class);
+		 
+		Answer answer = responseEntity.entity();
+		ChatResponse response = responseEntity.getResponse();
+		ChatResponseMetadata metadata = response.getMetadata();
+		logUsage(metadata.getUsage());
 
 		long endTime = System.currentTimeMillis();
 		log.info("Response time: {} ms", (endTime - startTime));
@@ -63,5 +72,12 @@ public class SpringAiBoardGameService implements BoardGameService {
 				.stream()
 				.content();
 	}
+	
+	private void logUsage(Usage usage) {
+	    log.info("Token usage: prompt={}, generation={}, total={}",
+	        usage.getPromptTokens(),
+	        usage.getCompletionTokens(),
+	        usage.getTotalTokens());
+	  }
 
 }
